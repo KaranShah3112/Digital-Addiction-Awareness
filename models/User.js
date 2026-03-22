@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema(
     dailyLimit: {
       type: Number,
       default: 4,
+      min: 1,
+      max: 24,
     },
   },
   { timestamps: true }

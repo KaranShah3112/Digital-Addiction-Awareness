@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Track Screen Time</title>
+  <title>Track Screen Time - Digital Addiction Awareness</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
+
   <%- include("../partials/navbar") %>
 
   <div class="max-w-6xl mx-auto px-4 py-8">
@@ -28,8 +29,25 @@
       </div>
     <% } %>
 
+    <div class="grid md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-white p-5 rounded-2xl shadow border border-slate-200">
+        <p class="text-sm text-slate-500">Today's Total</p>
+        <p class="text-2xl font-bold text-indigo-700"><%= todayTotal || 0 %> hrs</p>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow border border-slate-200">
+        <p class="text-sm text-slate-500">Sessions Today</p>
+        <p class="text-2xl font-bold text-blue-700"><%= sessionCount || 0 %></p>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow border border-slate-200">
+        <p class="text-sm text-slate-500">Status</p>
+        <p id="sessionStatus" class="text-2xl font-bold text-green-600">Idle</p>
+      </div>
+    </div>
+
     <div class="grid lg:grid-cols-2 gap-8 mb-8">
-      <div class="bg-white rounded-2xl shadow p-6">
+      <div class="bg-white rounded-2xl shadow border border-slate-200 p-6">
         <h2 class="text-2xl font-bold mb-6">
           <%= editEntry ? "Edit Entry" : "Add Screen Time Manually" %>
         </h2>
@@ -73,12 +91,12 @@
           </div>
 
           <div class="flex gap-3">
-            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
               <%= editEntry ? "Update Entry" : "Add Screen Time" %>
             </button>
 
             <% if (editEntry) { %>
-              <a href="/track-screen-time" class="px-6 py-3 rounded-lg border border-slate-300 font-semibold">
+              <a href="/track-screen-time" class="px-6 py-3 rounded-lg border border-slate-300 font-semibold hover:bg-slate-50 transition">
                 Cancel
               </a>
             <% } %>
@@ -86,7 +104,7 @@
         </form>
       </div>
 
-      <div class="bg-white rounded-2xl shadow p-6">
+      <div class="bg-white rounded-2xl shadow border border-slate-200 p-6">
         <h2 class="text-2xl font-bold mb-6">Live Session Tracking</h2>
 
         <div class="grid gap-4">
@@ -112,26 +130,32 @@
             >
           </div>
 
-          <div class="p-6 rounded-xl bg-slate-50 border">
+          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200">
             <p class="text-sm text-slate-500 mb-2">Session Timer</p>
             <p id="liveTimer" class="text-4xl font-bold text-indigo-700">00:00:00</p>
           </div>
 
+          <div class="mt-2 p-4 bg-indigo-50 rounded-lg text-center border border-indigo-100">
+            <p id="motivationText" class="text-indigo-700 font-semibold">
+              Ready to start your session 🚀
+            </p>
+          </div>
+
           <div class="flex gap-3">
-            <button id="startBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+            <button id="startBtn" type="button" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
               Start Tracking
             </button>
-            <button id="stopBtn" class="bg-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-600" disabled>
+            <button id="stopBtn" type="button" class="bg-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-600 transition" disabled>
               Stop Tracking
             </button>
           </div>
 
-          <div id="sessionMessage" class="hidden p-4 rounded-lg"></div>
+          <div id="sessionMessage" class="hidden p-4 rounded-lg border"></div>
         </div>
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow p-6">
+    <div class="bg-white rounded-2xl shadow border border-slate-200 p-6">
       <h2 class="text-2xl font-bold mb-6">Your Entries</h2>
 
       <% if (entries && entries.length > 0) { %>
@@ -146,12 +170,12 @@
               </div>
 
               <div class="flex gap-3">
-                <a href="/track-screen-time/edit/<%= entry._id %>" class="px-4 py-2 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600">
+                <a href="/track-screen-time/edit/<%= entry._id %>" class="px-4 py-2 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition">
                   Edit
                 </a>
 
                 <form action="/track-screen-time/delete/<%= entry._id %>" method="POST" onsubmit="return confirm('Delete this entry?')">
-                  <button type="submit" class="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600">
+                  <button type="submit" class="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition">
                     Delete
                   </button>
                 </form>
@@ -170,6 +194,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+
     socket.on("screenTimeUpdated", function () {
       window.location.reload();
     });
@@ -180,16 +205,35 @@
     const sessionCategory = document.getElementById("sessionCategory");
     const sessionNotes = document.getElementById("sessionNotes");
     const sessionMessage = document.getElementById("sessionMessage");
+    const motivationText = document.getElementById("motivationText");
+    const sessionStatus = document.getElementById("sessionStatus");
 
     let trackingStartTime = null;
     let timerInterval = null;
+    let totalSeconds = 0;
+
+    const messages = [
+      "Stay focused 💪",
+      "You are doing great 👍",
+      "Keep going 🚀",
+      "Avoid distractions 📵",
+      "Take a short break soon 🧘"
+    ];
+
+    function randomMessage() {
+      return messages[Math.floor(Math.random() * messages.length)];
+    }
 
     function showMessage(text, isSuccess) {
-      sessionMessage.classList.remove("hidden", "bg-red-100", "text-red-700", "border-red-200", "bg-green-100", "text-green-700", "border-green-200");
-      sessionMessage.classList.add(isSuccess ? "bg-green-100" : "bg-red-100");
-      sessionMessage.classList.add(isSuccess ? "text-green-700" : "text-red-700");
-      sessionMessage.classList.add("border");
-      sessionMessage.classList.add(isSuccess ? "border-green-200" : "border-red-200");
+      sessionMessage.className = "p-4 rounded-lg border";
+      sessionMessage.classList.remove("hidden");
+
+      if (isSuccess) {
+        sessionMessage.classList.add("bg-green-100", "text-green-700", "border-green-200");
+      } else {
+        sessionMessage.classList.add("bg-red-100", "text-red-700", "border-red-200");
+      }
+
       sessionMessage.textContent = text;
     }
 
@@ -209,7 +253,15 @@
       }
 
       trackingStartTime = Date.now();
+      totalSeconds = 0;
+
       sessionMessage.classList.add("hidden");
+
+      sessionStatus.textContent = "Running";
+      sessionStatus.className = "text-2xl font-bold text-green-600";
+
+      motivationText.textContent = "Session started 🚀";
+      motivationText.className = "text-indigo-700 font-semibold";
 
       startBtn.disabled = true;
       stopBtn.disabled = false;
@@ -217,8 +269,25 @@
       sessionNotes.disabled = true;
 
       timerInterval = setInterval(() => {
-        const elapsedSeconds = Math.floor((Date.now() - trackingStartTime) / 1000);
-        liveTimer.textContent = formatTime(elapsedSeconds);
+        totalSeconds++;
+        liveTimer.textContent = formatTime(totalSeconds);
+
+        if (totalSeconds % 10 === 0) {
+          motivationText.textContent = randomMessage();
+          motivationText.className = "text-indigo-700 font-semibold";
+        }
+
+        const hours = totalSeconds / 3600;
+
+        if (hours > 3.5) {
+          motivationText.textContent = "⚠️ You are close to your daily limit!";
+          motivationText.className = "text-yellow-600 font-bold";
+        }
+
+        if (hours > 4) {
+          motivationText.textContent = "🚨 Limit exceeded! Consider stopping.";
+          motivationText.className = "text-red-600 font-bold";
+        }
       }, 1000);
     }
 
@@ -227,8 +296,13 @@
 
       clearInterval(timerInterval);
 
-      const elapsedMilliseconds = Date.now() - trackingStartTime;
-      const elapsedMinutes = elapsedMilliseconds / (1000 * 60);
+      const minutes = totalSeconds / 60;
+
+      sessionStatus.textContent = "Stopped";
+      sessionStatus.className = "text-2xl font-bold text-red-500";
+
+      motivationText.textContent = "Session completed ✅";
+      motivationText.className = "text-green-700 font-bold";
 
       try {
         const response = await fetch("/track-screen-time/session", {
@@ -238,7 +312,7 @@
           },
           body: JSON.stringify({
             category: sessionCategory.value,
-            minutes: elapsedMinutes,
+            minutes,
             notes: sessionNotes.value
           })
         });
@@ -248,7 +322,7 @@
         if (!response.ok) {
           showMessage(result.message || "Failed to save tracked session.", false);
         } else {
-          showMessage("Tracked session saved successfully.", true);
+          showMessage("Session saved successfully 🎉", true);
           liveTimer.textContent = "00:00:00";
           trackingStartTime = null;
           sessionCategory.disabled = false;

@@ -7,12 +7,25 @@ const getTrackPage = async (req, res) => {
   try {
     const entries = await ScreenTime.find({ user: req.session.userId }).sort({ createdAt: -1 });
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const todayEntries = await ScreenTime.find({
+      user: req.session.userId,
+      date: { $gte: startOfToday },
+    });
+
+    const todayTotal = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
+    const sessionCount = todayEntries.length;
+
     res.render("store/trackScreenTime", {
       entries,
       editEntry: null,
       error: null,
       success: null,
       userName: req.session.userName || null,
+      todayTotal: Number(todayTotal.toFixed(2)),
+      sessionCount,
     });
   } catch (error) {
     console.error(error);
@@ -22,6 +35,8 @@ const getTrackPage = async (req, res) => {
       error: "Could not load screen time records",
       success: null,
       userName: req.session.userName || null,
+      todayTotal: 0,
+      sessionCount: 0,
     });
   }
 };
@@ -33,12 +48,24 @@ const addScreenTime = async (req, res) => {
     if (!category || !hours || Number(hours) < 0 || Number(hours) > 24) {
       const entries = await ScreenTime.find({ user: req.session.userId }).sort({ createdAt: -1 });
 
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const todayEntries = await ScreenTime.find({
+        user: req.session.userId,
+        date: { $gte: startOfToday },
+      });
+
+      const todayTotal = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
+
       return res.render("store/trackScreenTime", {
         entries,
         editEntry: null,
         error: "Please enter valid category and hours between 0 and 24",
         success: null,
         userName: req.session.userName || null,
+        todayTotal: Number(todayTotal.toFixed(2)),
+        sessionCount: todayEntries.length,
       });
     }
 
@@ -58,17 +85,39 @@ const addScreenTime = async (req, res) => {
 
     const entries = await ScreenTime.find({ user: req.session.userId }).sort({ createdAt: -1 });
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const todayEntries = await ScreenTime.find({
+      user: req.session.userId,
+      date: { $gte: startOfToday },
+    });
+
+    const todayTotal = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
+
     res.render("store/trackScreenTime", {
       entries,
       editEntry: null,
       error: null,
       success: "Screen time added successfully",
       userName: req.session.userName || null,
+      todayTotal: Number(todayTotal.toFixed(2)),
+      sessionCount: todayEntries.length,
     });
   } catch (error) {
     console.error(error);
 
     const entries = await ScreenTime.find({ user: req.session.userId }).sort({ createdAt: -1 });
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const todayEntries = await ScreenTime.find({
+      user: req.session.userId,
+      date: { $gte: startOfToday },
+    });
+
+    const todayTotal = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
 
     res.render("store/trackScreenTime", {
       entries,
@@ -76,6 +125,8 @@ const addScreenTime = async (req, res) => {
       error: "Failed to save screen time",
       success: null,
       userName: req.session.userName || null,
+      todayTotal: Number(todayTotal.toFixed(2)),
+      sessionCount: todayEntries.length,
     });
   }
 };
@@ -140,12 +191,24 @@ const getEditScreenTimePage = async (req, res) => {
       return res.redirect("/track-screen-time");
     }
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const todayEntries = await ScreenTime.find({
+      user: req.session.userId,
+      date: { $gte: startOfToday },
+    });
+
+    const todayTotal = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
+
     res.render("store/trackScreenTime", {
       entries,
       editEntry,
       error: null,
       success: null,
       userName: req.session.userName || null,
+      todayTotal: Number(todayTotal.toFixed(2)),
+      sessionCount: todayEntries.length,
     });
   } catch (error) {
     console.error(error);
@@ -164,12 +227,24 @@ const updateScreenTime = async (req, res) => {
         user: req.session.userId,
       });
 
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const todayEntries = await ScreenTime.find({
+        user: req.session.userId,
+        date: { $gte: startOfToday },
+      });
+
+      const todayTotal = todayEntries.reduce((sum, entry) => sum + entry.hours, 0);
+
       return res.render("store/trackScreenTime", {
         entries,
         editEntry,
         error: "Please enter valid category and hours between 0 and 24",
         success: null,
         userName: req.session.userName || null,
+        todayTotal: Number(todayTotal.toFixed(2)),
+        sessionCount: todayEntries.length,
       });
     }
 
